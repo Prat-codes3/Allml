@@ -1,22 +1,22 @@
-import express from 'express'
-import { config } from './config.js'
-import { PrismaClient } from '@prisma/client'
+import express from 'express';
+import courseRoutes from './routes/course.routes.js';
+import userRoutes from './routes/user.routes.js';
 
 const app = express();
-const prisma = new PrismaClient();
 
-app.use(express.json())
+// Global middleware
+app.use(express.json());
 
+// Root health check
 app.get('/', (req, res) => {
-    res.send(`hello buoy`)
-})
+  res.send('hello buoy');
+});
 
-// Get all users
-app.get('/users', async (req, res) => {
-   const users = await prisma.user.findMany();
-   res.json(users)
-})
+// Modular routes
+app.use('/users', userRoutes);
+app.use('/api/courses', courseRoutes);
 
-export { app }
+export { app };
+
 
 

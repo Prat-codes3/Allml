@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// Allml — Phase 1: Content Architecture
+// Prisma schema for educational tutorial platform
 
 generator client {
   provider = "prisma-client-js"
@@ -13,10 +10,123 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────
+// USER (existing — preserved for future phases)
+// ─────────────────────────────────────────────
+
 model User {
   id        Int      @id @default(autoincrement())
   username  String
-  password String
+  password  String
   email     String   @unique
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// COURSE
+// ─────────────────────────────────────────────
+
+model Course {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String    @unique
+  description    String?   @db.Text
+  coverImage     String?
+
+  // SEO overrides
+  seoTitle       String?
+  seoDescription String?
+  ogImage        String?
+
+  isPublished    Boolean   @default(false)
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  topics         Topic[]
+
+  // Indexes
+  @@index([isPublished])
+  @@index([createdAt])
+
+  @@map("courses")
+}
+
+// ─────────────────────────────────────────────
+// TOPIC (self-referencing for unlimited nesting)
+// ─────────────────────────────────────────────
+
+model Topic {
+  id             String    @id @default(cuid())
+  title          String
+  slug           String
+  description    String?   @db.Text
+  position       Int       @default(0)
+
+  // SEO overrides
+  seoTitle       String?
+  seoDescription String?
+  ogImage        String?
+
+  isPublished    Boolean   @default(false)
+  publishedAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Course relation
+  courseId        String
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  // Self-referencing parent/children
+  parentId        String?
+  parent          Topic?   @relation("TopicHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children        Topic[]  @relation("TopicHierarchy")
+
+  // Content blocks
+  contentBlocks   ContentBlock[]
+
+  // Constraints & Indexes
+  @@unique([courseId, slug])
+  @@index([courseId])
+  @@index([parentId])
+  @@index([courseId, parentId, position])
+  @@index([isPublished])
+
+  @@map("topics")
+}
+
+// ─────────────────────────────────────────────
+// CONTENT BLOCK (generic, JSONB-powered)
+// ─────────────────────────────────────────────
+
+enum ContentBlockType {
+  TEXT
+  IMAGE
+  VIDEO
+  CODE
+  CALLOUT
+  TABLE
+
+  @@map("content_block_type")
+}
+
+model ContentBlock {
+  id        String           @id @default(cuid())
+  type      ContentBlockType
+  content   Json             @db.JsonB
+  position  Int              @default(0)
+
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  // Topic relation
+  topicId   String
+  topic     Topic            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([topicId, position])
+
+  @@map("content_blocks")
 }
