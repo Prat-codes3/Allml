@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { fetchCourse, fetchTopics } from '../../lib/api.js';
+
+const { courseSlug } = Astro.params;
+
+let course = null;
+let topics = [];
+let error = null;
+
+try {
+  course = await fetchCourse(courseSlug);
+  if (course) {
+    topics = await fetchTopics(courseSlug);
+  }
+} catch (e) {
+  error = e.message;
+}
+
+if (!course) {
+  return Astro.redirect('/404');
+}
+
+// Find the first child topic for the "Start Learning" button
+let firstTopicSlug = null;
+if (course.topics && course.topics.length > 0) {
+  const firstSection = course.topics[0];
+  if (firstSection.children && firstSection.children.length > 0) {
+    firstTopicSlug = firstSection.children[0].slug;
+  } else {
+    firstTopicSlug = firstSection.slug;
+  }
+}
+
+const pageTitle = course.seoTitle || `${course.title} — Allml`;
+const pageDesc = course.seoDescription || course.description || '';
+---
+
+<BaseLayout title={pageTitle} description={pageDesc} ogImage={course.ogImage}>
+  <div class="course-overview">
+    <!-- Breadcrumbs -->
+    <Breadcrumbs items={[
+      { label: 'Home', href: '/' },
+      { label: course.title },
+    ]} />
+
+    <!-- Course Header -->
+    <div class="course-overview__header animate-fade-in-up">
+      <div class="course-overview__meta">
+        <h1 class="course-overview__title">{course.title}</h1>
+        {course.description && (
+          <p class="course-overview__desc">{course.description}</p>
+        )}
+        {firstTopicSlug && (
+          <a href={`/courses/${courseSlug}/${firstTopicSlug}`} class="course-overview__start-btn">
+            Start Learning
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+        )}
+      </div>
+      {course.coverImage && (
+        <img
+          src={course.coverImage}
+          alt={course.title}
+          class="course-overview__image"
+        />
+      )}
+    </div>
+
+    <!-- Curriculum / Syllabus -->
+    {course.topics && course.topics.length > 0 && (
+      <section class="curriculum">
+        <h2 class="curriculum__title">Curriculum</h2>
+        {course.topics.map((section: any, i: number) => (
+          <div class={`curriculum__section animate-fade-in-up animate-delay-${Math.min(i + 1, 4)}`}>
+            <div class="curriculum__section-header">
+              <span class="curriculum__section-number">{i + 1}</span>
+              <span class="curriculum__section-name">{section.title}</span>
+            </div>
+            {section.children && section.children.length > 0 && (
+              <div class="curriculum__topics">
+                {section.children.map((child: any) => (
+                  <a href={`/courses/${courseSlug}/${child.slug}`} class="curriculum__topic">
+                    <svg class="curriculum__topic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M9 12h6M9 16h6M9 8h6M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                    </svg>
+                    <span>{child.title}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </section>
+    )}
+  </div>
+</BaseLayout>

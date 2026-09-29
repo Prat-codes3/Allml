@@ -1,0 +1,47 @@
+---
+interface Props {
+  course: {
+    title: string;
+    slug: string;
+    coverImage?: string;
+    description?: string;
+    seoDescription?: string;
+  };
+  topicCount?: number;
+}
+
+const { course, topicCount } = Astro.props;
+const displayDesc = course.seoDescription || course.description || '';
+---
+
+<a href={`/courses/${course.slug}`} class="course-card animate-fade-in-up">
+  {course.coverImage && (
+    <img
+      src={course.coverImage}
+      alt={course.title}
+      class="course-card__image"
+      loading="lazy"
+    />
+  )}
+
+  <div class="course-card__body">
+    <span class="course-card__tag">Course</span>
+    <h3 class="course-card__title">{course.title}</h3>
+    {displayDesc && (
+      <p class="course-card__desc">
+        {displayDesc.length > 120 ? displayDesc.slice(0, 120) + '…' : displayDesc}
+      </p>
+    )}
+    <div class="course-card__meta">
+      {topicCount !== undefined && (
+        <span>{topicCount} topics</span>
+      )}
+    </div>
+  </div>
+
+  <span class="course-card__arrow">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  </span>
+</a>

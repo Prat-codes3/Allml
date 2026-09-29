@@ -1,0 +1,45 @@
+---
+interface Props {
+  content: {
+    url: string;
+    provider?: string;
+    title?: string;
+  };
+}
+
+const { content } = Astro.props;
+
+// Extract YouTube video ID for embed
+function getYouTubeId(url: string): string | null {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([^&?#]+)/);
+  return match ? match[1] : null;
+}
+
+const youtubeId = content.provider === 'youtube' || content.url.includes('youtube')
+  ? getYouTubeId(content.url)
+  : null;
+
+const embedUrl = youtubeId
+  ? `https://www.youtube.com/embed/${youtubeId}?rel=0`
+  : content.url;
+---
+
+<div class="video-block">
+  <div class="video-block__wrapper">
+    <iframe
+      src={embedUrl}
+      title={content.title || 'Video'}
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen
+      loading="lazy"
+    ></iframe>
+  </div>
+  {content.title && (
+    <div class="video-block__title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:middle; margin-right:4px;">
+        <polygon points="5 3 19 12 5 21 5 3" />
+      </svg>
+      {content.title}
+    </div>
+  )}
+</div>

@@ -1,0 +1,31 @@
+---
+interface Props {
+  courseSlug: string;
+  prev?: { title: string; slug: string } | null;
+  next?: { title: string; slug: string } | null;
+}
+
+const { courseSlug, prev, next } = Astro.props;
+---
+
+{(prev || next) && (
+  <nav class="topic-nav">
+    {prev ? (
+      <a href={`/courses/${courseSlug}/${prev.slug}`} class="topic-nav__link">
+        <span class="topic-nav__label">← Previous</span>
+        <span class="topic-nav__title">{prev.title}</span>
+      </a>
+    ) : (
+      <div></div>
+    )}
+
+    {next ? (
+      <a href={`/courses/${courseSlug}/${next.slug}`} class="topic-nav__link topic-nav__link--next">
+        <span class="topic-nav__label">Next →</span>
+        <span class="topic-nav__title">{next.title}</span>
+      </a>
+    ) : (
+      <div></div>
+    )}
+  </nav>
+)}

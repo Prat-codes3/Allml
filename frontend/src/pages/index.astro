@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CourseCard from '../components/CourseCard.astro';
+import { fetchCourses } from '../lib/api.js';
+
+let courses = [];
+let error = null;
+
+try {
+  courses = await fetchCourses();
+} catch (e) {
+  error = e.message;
+}
+---
+
+<BaseLayout
+  title="Allml — Master AI & Machine Learning"
+  description="A premium learning platform for Machine Learning, Agentic AI, RAG, and modern AI systems."
+>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero__badge">
+      <span class="hero__badge-dot"></span>
+      <span>Open & Free Learning</span>
+    </div>
+    <h1 class="hero__title">
+      Learn AI the<br />
+      <span class="hero__title-gradient">right way.</span>
+    </h1>
+    <p class="hero__subtitle">
+      Deep-dive tutorials on Agentic AI, RAG, LLMs, and production ML systems — structured, visual, and built for developers.
+    </p>
+  </section>
+
+  <!-- Course Catalog -->
+  {error ? (
+    <div class="empty-state">
+      <div class="empty-state__icon">⚠️</div>
+      <h2 class="empty-state__title">Unable to load courses</h2>
+      <p class="empty-state__text">Make sure the backend server is running on port 8000. Error: {error}</p>
+    </div>
+  ) : courses.length === 0 ? (
+    <div class="empty-state">
+      <div class="empty-state__icon">📚</div>
+      <h2 class="empty-state__title">No courses yet</h2>
+      <p class="empty-state__text">Courses will appear here once they are published.</p>
+    </div>
+  ) : (
+    <section class="courses-grid">
+      {courses.map((course: any, i: number) => (
+        <div class={`animate-delay-${i + 1}`}>
+          <CourseCard course={course} />
+        </div>
+      ))}
+    </section>
+  )}
+</BaseLayout>

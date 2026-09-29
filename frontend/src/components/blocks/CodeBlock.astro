@@ -1,0 +1,70 @@
+---
+interface Props {
+  content: {
+    language?: string;
+    filename?: string;
+    code: string;
+  };
+}
+
+const { content } = Astro.props;
+const blockId = `code-block-${Math.random().toString(36).slice(2, 9)}`;
+---
+
+<div class="code-block" id={blockId}>
+  <div class="code-block__header">
+    <div class="code-block__meta">
+      <div class="code-block__dots">
+        <span class="code-block__dot code-block__dot--red"></span>
+        <span class="code-block__dot code-block__dot--yellow"></span>
+        <span class="code-block__dot code-block__dot--green"></span>
+      </div>
+      {content.filename && (
+        <span class="code-block__filename">{content.filename}</span>
+      )}
+    </div>
+    <div class="code-block__meta">
+      {content.language && (
+        <span class="code-block__lang">{content.language}</span>
+      )}
+      <button class="code-block__copy" data-code-id={blockId} aria-label="Copy code">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+        </svg>
+        <span class="code-block__copy-text">Copy</span>
+      </button>
+    </div>
+  </div>
+  <div class="code-block__body">
+    <pre><code>{content.code}</code></pre>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.code-block__copy').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const blockId = btn.getAttribute('data-code-id');
+        const block = document.getElementById(blockId);
+        const code = block?.querySelector('code')?.textContent || '';
+
+        try {
+          await navigator.clipboard.writeText(code);
+          const textEl = btn.querySelector('.code-block__copy-text');
+          if (textEl) {
+            const original = textEl.textContent;
+            textEl.textContent = 'Copied!';
+            btn.classList.add('code-block__copy--copied');
+            setTimeout(() => {
+              textEl.textContent = original;
+              btn.classList.remove('code-block__copy--copied');
+            }, 2000);
+          }
+        } catch {
+          // Fallback for older browsers
+        }
+      });
+    });
+  });
+</script>

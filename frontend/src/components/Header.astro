@@ -1,0 +1,36 @@
+---
+// Header component — top navigation bar with logo and nav links
+const currentPath = Astro.url.pathname;
+---
+
+<header class="header">
+  <div class="header__inner">
+    <a href="/" class="header__logo">
+      <span class="header__logo-icon">A</span>
+      <span>allml</span>
+    </a>
+
+    <nav class="header__nav">
+      <a
+        href="/"
+        class:list={['header__nav-link', { 'header__nav-link--active': currentPath === '/' }]}
+      >
+        Home
+      </a>
+      <a
+        href="/"
+        class:list={['header__nav-link', { 'header__nav-link--active': currentPath.startsWith('/courses') }]}
+      >
+        Courses
+      </a>
+    </nav>
+
+    <button class="header__menu-btn" aria-label="Toggle menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+  </div>
+</header>

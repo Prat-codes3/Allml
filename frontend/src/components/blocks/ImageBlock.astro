@@ -1,0 +1,23 @@
+---
+interface Props {
+  content: {
+    url: string;
+    alt?: string;
+    caption?: string;
+  };
+}
+
+const { content } = Astro.props;
+---
+
+<figure class="image-block">
+  <img
+    src={content.url}
+    alt={content.alt || ''}
+    class="image-block__img"
+    loading="lazy"
+  />
+  {content.caption && (
+    <figcaption class="image-block__caption">{content.caption}</figcaption>
+  )}
+</figure>

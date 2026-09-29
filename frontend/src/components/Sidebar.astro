@@ -1,0 +1,77 @@
+---
+interface TopicItem {
+  id: string;
+  title: string;
+  slug: string;
+  position: number;
+  children?: TopicItem[];
+}
+
+interface Props {
+  course: {
+    title: string;
+    slug: string;
+  };
+  topics: TopicItem[];
+  currentTopicSlug?: string;
+}
+
+const { course, topics, currentTopicSlug } = Astro.props;
+---
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar__section-title">{course.title}</div>
+
+  {topics.map((topic) => (
+    <div>
+      {topic.children && topic.children.length > 0 ? (
+        <>
+          <div class:list={[
+            'sidebar__item',
+            'sidebar__item--parent',
+            { 'sidebar__item--active': topic.slug === currentTopicSlug },
+          ]}>
+            <svg class="curriculum__topic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+            <span>{topic.title}</span>
+            <span class="sidebar__toggle sidebar__toggle--open">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </span>
+          </div>
+          <div class="sidebar__children">
+            {topic.children.map((child) => (
+              <a
+                href={`/courses/${course.slug}/${child.slug}`}
+                class:list={[
+                  'sidebar__item',
+                  { 'sidebar__item--active': child.slug === currentTopicSlug },
+                ]}
+              >
+                <svg class="curriculum__topic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 12h6M9 16h6M9 8h6M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+                </svg>
+                <span>{child.title}</span>
+              </a>
+            ))}
+          </div>
+        </>
+      ) : (
+        <a
+          href={`/courses/${course.slug}/${topic.slug}`}
+          class:list={[
+            'sidebar__item',
+            { 'sidebar__item--active': topic.slug === currentTopicSlug },
+          ]}
+        >
+          <svg class="curriculum__topic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 12h6M9 16h6M9 8h6M5 4h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" />
+          </svg>
+          <span>{topic.title}</span>
+        </a>
+      )}
+    </div>
+  ))}
+</aside>

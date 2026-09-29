@@ -1,0 +1,116 @@
+---
+import TutorialLayout from '../../../layouts/TutorialLayout.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import BlockRenderer from '../../../components/blocks/BlockRenderer.astro';
+import TopicNav from '../../../components/TopicNav.astro';
+import { fetchCourse, fetchTopics, fetchTopic } from '../../../lib/api.js';
+
+const { courseSlug, topicSlugs } = Astro.params;
+
+// The catch-all route gives us the topic slugs as a single string path.
+// We take the last slug segment as the topic slug for the API call.
+const slugSegments = topicSlugs ? topicSlugs.split('/') : [];
+const currentTopicSlug = slugSegments[slugSegments.length - 1];
+
+if (!currentTopicSlug) {
+  return Astro.redirect(`/courses/${courseSlug}`);
+}
+
+let course = null;
+let topics = [];
+let topicData = null;
+let error = null;
+
+try {
+  // Fetch course metadata, sidebar topics, and the current topic content in parallel
+  const [courseResult, topicsResult, topicResult] = await Promise.all([
+    fetchCourse(courseSlug),
+    fetchTopics(courseSlug),
+    fetchTopic(courseSlug, currentTopicSlug),
+  ]);
+
+  course = courseResult;
+  topics = topicsResult;
+  topicData = topicResult;
+} catch (e) {
+  error = e.message;
+}
+
+if (!course || !topicData) {
+  return Astro.redirect('/404');
+}
+
+const topic = topicData.topic;
+
+// Build breadcrumb items
+const breadcrumbItems = [
+  { label: 'Home', href: '/' },
+  { label: course.title, href: `/courses/${courseSlug}` },
+];
+
+if (topic.parent) {
+  breadcrumbItems.push({
+    label: topic.parent.title,
+    href: `/courses/${courseSlug}/${topic.parent.slug}`,
+  });
+}
+
+breadcrumbItems.push({ label: topic.title });
+
+// Find prev/next siblings for navigation
+const siblings = topic.parent
+  ? (topics.flatMap((t: any) => t.children || []))
+  : topics;
+
+const currentIndex = siblings.findIndex((s: any) => s.slug === currentTopicSlug);
+const prevTopic = currentIndex > 0 ? siblings[currentIndex - 1] : null;
+const nextTopic = currentIndex < siblings.length - 1 ? siblings[currentIndex + 1] : null;
+
+// SEO metadata
+const pageTitle = topic.seoTitle || `${topic.title} — ${course.title} | Allml`;
+const pageDesc = topic.seoDescription || topic.description || '';
+---
+
+<TutorialLayout
+  title={pageTitle}
+  description={pageDesc}
+  ogImage={topic.ogImage}
+  course={{ title: course.title, slug: courseSlug }}
+  topics={topics}
+  currentTopicSlug={currentTopicSlug}
+>
+  <!-- Breadcrumbs -->
+  <Breadcrumbs items={breadcrumbItems} />
+
+  <!-- Tutorial Header -->
+  <header class="tutorial-header animate-fade-in-up">
+    <h1 class="tutorial-header__title">{topic.title}</h1>
+    {topic.description && (
+      <p class="tutorial-header__description">{topic.description}</p>
+    )}
+  </header>
+
+  <!-- Content Blocks -->
+  {topic.contentBlocks && topic.contentBlocks.length > 0 ? (
+    <div class="content-blocks">
+      {topic.contentBlocks.map((block: any, i: number) => (
+        <div class={`animate-fade-in-up animate-delay-${Math.min(i + 1, 4)}`}>
+          <BlockRenderer block={block} />
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div class="empty-state">
+      <div class="empty-state__icon">📝</div>
+      <h2 class="empty-state__title">Content coming soon</h2>
+      <p class="empty-state__text">This tutorial is being written. Check back later!</p>
+    </div>
+  )}
+
+  <!-- Prev / Next Navigation -->
+  <TopicNav
+    courseSlug={courseSlug}
+    prev={prevTopic}
+    next={nextTopic}
+  />
+</TutorialLayout>

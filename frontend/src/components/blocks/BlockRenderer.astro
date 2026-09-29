@@ -1,0 +1,24 @@
+---
+import TextBlock from './TextBlock.astro';
+import CodeBlock from './CodeBlock.astro';
+import ImageBlock from './ImageBlock.astro';
+import CalloutBlock from './CalloutBlock.astro';
+import VideoBlock from './VideoBlock.astro';
+import TableBlock from './TableBlock.astro';
+
+interface Props {
+  block: {
+    type: string;
+    content: any;
+  };
+}
+
+const { block } = Astro.props;
+---
+
+{block.type === 'TEXT' && <TextBlock content={block.content} />}
+{block.type === 'CODE' && <CodeBlock content={block.content} />}
+{block.type === 'IMAGE' && <ImageBlock content={block.content} />}
+{block.type === 'CALLOUT' && <CalloutBlock content={block.content} />}
+{block.type === 'VIDEO' && <VideoBlock content={block.content} />}
+{block.type === 'TABLE' && <TableBlock content={block.content} />}
